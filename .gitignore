@@ -8,3 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Tests
+tests/
+
+# Documents
+docs/git_guide
+input.txt
+zametki.txt

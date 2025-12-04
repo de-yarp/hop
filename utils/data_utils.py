@@ -1,8 +1,8 @@
 from pathlib import Path
 
 
-def parse_input(fin: Path) -> dict[int, dict[str, list[int]]]:
-    guards: dict[int, dict[str, list[int]]] = {}
+def parse_input(fin: Path) -> dict[int, dict[str, set[int]]]:
+    guards: dict[int, dict[str, set[int]]] = {}
     with fin.open(mode="r", encoding="utf-8") as f:
         idx = 1
 
@@ -17,6 +17,6 @@ def parse_input(fin: Path) -> dict[int, dict[str, list[int]]]:
                     forbiddens.append(int(t[1:]))
                     continue
                 prefs.append(int(t))
-            guards[idx] = {"prefs": prefs, "forbiddens": forbiddens}
+            guards[idx] = {"prefs": set(prefs), "forbiddens": set(forbiddens)}
             idx += 1
     return guards
