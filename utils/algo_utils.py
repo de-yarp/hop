@@ -1,10 +1,16 @@
+from random import random as rand
 from typing import Literal
 
+from utils.helpers import (
+    _get_coverage_score,
+    _get_fairness_penalty,
+    _get_pref_score,
+    _is_candidate_better,
+    _is_pref,
+    _is_schedule_valid,
+)
 
-def _is_pref(guards: dict[int, dict[str, set[int]]], g, weekday: int) -> int:
-    if weekday in guards[g]["prefs"]:
-        return 1
-    return 0
+EPS = 1e-6
 
 
 def _dayshift(
@@ -51,28 +57,18 @@ def _dayshift(
                     best_shift_count = cur_shift_count
                     continue
 
-                if cur_pref > best_pref:
+                candidate_is_better = _is_candidate_better(
+                    best_idx=best_idx,
+                    idx_g=idx_g,
+                    best_pref=best_pref,
+                    cur_pref=cur_pref,
+                    best_shift_count=best_shift_count,
+                    cur_shift_count=cur_shift_count,
+                )
+                if candidate_is_better:
                     best_idx = idx_g
                     best_pref = cur_pref
                     best_shift_count = cur_shift_count
-                    continue
-                elif cur_pref < best_pref:
-                    continue
-
-                elif cur_shift_count < best_shift_count:
-                    best_idx = idx_g
-                    best_pref = cur_pref
-                    best_shift_count = cur_shift_count
-                    continue
-                elif cur_shift_count > best_shift_count:
-                    continue
-
-                elif idx_g < best_idx:
-                    best_idx = idx_g
-                    best_pref = cur_pref
-                    best_shift_count = cur_shift_count
-                    continue
-                elif idx_g > best_idx:
                     continue
 
         if best_idx is None:
@@ -106,28 +102,18 @@ def _dayshift(
                         best_shift_count = cur_shift_count
                         continue
 
-                    if cur_pref > best_pref:
+                    candidate_is_better = _is_candidate_better(
+                        best_idx=best_idx,
+                        idx_g=idx_g,
+                        best_pref=best_pref,
+                        cur_pref=cur_pref,
+                        best_shift_count=best_shift_count,
+                        cur_shift_count=cur_shift_count,
+                    )
+                    if candidate_is_better:
                         best_idx = idx_g
                         best_pref = cur_pref
                         best_shift_count = cur_shift_count
-                        continue
-                    elif cur_pref < best_pref:
-                        continue
-
-                    elif cur_shift_count < best_shift_count:
-                        best_idx = idx_g
-                        best_pref = cur_pref
-                        best_shift_count = cur_shift_count
-                        continue
-                    elif cur_shift_count > best_shift_count:
-                        continue
-
-                    elif idx_g < best_idx:
-                        best_idx = idx_g
-                        best_pref = cur_pref
-                        best_shift_count = cur_shift_count
-                        continue
-                    elif idx_g > best_idx:
                         continue
 
             shifts[idx_d][0] = best_idx
@@ -179,28 +165,18 @@ def _nightshift(
                     best_shift_count = cur_shift_count
                     continue
 
-                if cur_pref > best_pref:
+                candidate_is_better = _is_candidate_better(
+                    best_idx=best_idx,
+                    idx_g=idx_g,
+                    best_pref=best_pref,
+                    cur_pref=cur_pref,
+                    best_shift_count=best_shift_count,
+                    cur_shift_count=cur_shift_count,
+                )
+                if candidate_is_better:
                     best_idx = idx_g
                     best_pref = cur_pref
                     best_shift_count = cur_shift_count
-                    continue
-                elif cur_pref < best_pref:
-                    continue
-
-                elif cur_shift_count < best_shift_count:
-                    best_idx = idx_g
-                    best_pref = cur_pref
-                    best_shift_count = cur_shift_count
-                    continue
-                elif cur_shift_count > best_shift_count:
-                    continue
-
-                elif idx_g < best_idx:
-                    best_idx = idx_g
-                    best_pref = cur_pref
-                    best_shift_count = cur_shift_count
-                    continue
-                elif idx_g > best_idx:
                     continue
 
         if best_idx is None:
@@ -240,28 +216,18 @@ def _nightshift(
                     if cur_night > min_night:
                         continue
 
-                    if cur_pref > best_pref:
+                    candidate_is_better = _is_candidate_better(
+                        best_idx=best_idx,
+                        idx_g=idx_g,
+                        best_pref=best_pref,
+                        cur_pref=cur_pref,
+                        best_shift_count=best_shift_count,
+                        cur_shift_count=cur_shift_count,
+                    )
+                    if candidate_is_better:
                         best_idx = idx_g
                         best_pref = cur_pref
                         best_shift_count = cur_shift_count
-                        continue
-                    elif cur_pref < best_pref:
-                        continue
-
-                    elif cur_shift_count < best_shift_count:
-                        best_idx = idx_g
-                        best_pref = cur_pref
-                        best_shift_count = cur_shift_count
-                        continue
-                    elif cur_shift_count > best_shift_count:
-                        continue
-
-                    elif idx_g < best_idx:
-                        best_idx = idx_g
-                        best_pref = cur_pref
-                        best_shift_count = cur_shift_count
-                        continue
-                    elif idx_g > best_idx:
                         continue
 
             shifts[idx_d][nightshift_num] = best_idx
@@ -324,10 +290,47 @@ def init_solution(
         nightshift_num=2,
     )
 
-    print(f"day_count: {day_count}\n")
-    print(f"night_count: {night_count}\n")
-    print(f"extra_day_used: {extra_day_used}\n")
-    print(f"extra_night_used: {extra_night_used}\n")
-    print(f"unavailable_day_guards: {unavailable_day_guards}\n")
-    print(f"unavailable_night_guards: {unavailable_night_guards}")
+    # print(f"day_count: {day_count}\n")
+    # print(f"night_count: {night_count}\n")
+    # print(f"extra_day_used: {extra_day_used}\n")
+    # print(f"extra_night_used: {extra_night_used}\n")
+    # print(f"unavailable_day_guards: {unavailable_day_guards}\n")
+    # print(f"unavailable_night_guards: {unavailable_night_guards}")
     return shifts
+
+
+def _is_new_schedule_better(
+    guards: dict[int, dict[str, set[int]]],
+    shifts_2: list[list[int]],
+    pref_score_1: float,
+    cov_score_1: float,
+    penalty_1: int,
+) -> bool:
+    valid = _is_schedule_valid(shifts_2, guards)
+    if not valid:
+        return False
+
+    pref_score_2 = _get_pref_score(shifts_2, guards)
+    delta_pref = pref_score_2 - pref_score_1
+    if delta_pref > EPS:
+        return True
+    if delta_pref < -EPS:
+        return False
+
+    cov_score_2 = _get_coverage_score(shifts_2, guards)
+    delta_cov = cov_score_2 - cov_score_1
+    if delta_cov > EPS:
+        return True
+    if delta_cov < -EPS:
+        return False
+
+    penalty_2 = _get_fairness_penalty(shifts_2, guards)
+    if penalty_2 < penalty_1:
+        return True
+    if penalty_2 > penalty_1:
+        return False
+
+    if rand() <= 0.5:
+        return True
+
+    return False
