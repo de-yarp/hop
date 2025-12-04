@@ -14,5 +14,5 @@ tests/
 
 # Documents
 docs/git_guide
-input.txt
-zametki.txt
+docs/input.txt
+docs/zametki.txt
