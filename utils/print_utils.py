@@ -27,7 +27,9 @@ def print_result(
     pen2: int,
 ) -> None:
     pref_perc = round((pref2 - pref1) / (pref1 / 100), 3)
+    pref_res = f"+{pref_perc}%" if pref_perc >= 0 else f"{pref_perc}%"
     cov_perc = round((cov2 - cov1) / (cov1 / 100), 3)
+    cov_res = f"+{cov_perc}%" if cov_perc >= 0 else f"{cov_perc}%"
     pen_delta = pen2 - pen1
     _, min_count_1, max_count_1 = _fairness_penalty_and_min_max(shifts_1, guards)
     _, min_count_2, max_count_2 = _fairness_penalty_and_min_max(shifts_2, guards)
@@ -50,14 +52,9 @@ def print_result(
 
     # results
     print("\n---------- RESULTS ----------\n")
-    print(f"Preference score improved {pref_perc}%")
-    print(f"Coverage score improved {cov_perc}%")
-    print("\nFairness penalty (max total-shift gap above 1):")
+    print(f" • PrefScore: {pref1:.4f} → {pref2:.4f} ({pref_res})")
+    print(f" • CoverageScore: {cov1:.4f} → {cov2:.4f} ({cov_res})")
     print(
-        f"initial: S_min = {min_count_1}, S_max = {max_count_1}, penalty = {max_count_1 - min_count_1}"
+        f" • Fairness penalty: {pen1} → {pen2} (Δ = {pen_delta}), S_min = {min_count_2}, S_max = {max_count_2}"
     )
-    print(
-        f"final: S_min = {min_count_2}, S_max = {max_count_2}, penalty = {max_count_2 - min_count_2}"
-    )
-    print(f"Δ penalty = {pen_delta}")
-    print(f"\nTime taken: {t_d:.4f} s")
+    print(f"   • Time taken: {t_d:.4f} s")
