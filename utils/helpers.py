@@ -504,3 +504,11 @@ def _is_new_schedule_better(
         return t_tuple
 
     return f_tuple
+
+
+def _get_night_count(shifts: list[list[int]], V: int) -> list[int]:
+    night_count = [0] * V
+    for g_day, g_n1, g_n2 in shifts:
+        night_count[g_n1] += 1
+        night_count[g_n2] += 1
+    return night_count
