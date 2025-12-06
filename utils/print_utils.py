@@ -14,6 +14,44 @@ def _fairness_penalty_and_min_max(
     return fairness_penalty, min_count, max_count
 
 
+def _daynight_quantity(
+    shifts: list[list[int]],
+    guards: dict[int, dict[str, set[int]]],
+) -> tuple[list[int], list[int]]:
+    shift_count = [[0, 0] for _ in range(len(guards))]
+
+    for d, n1, n2 in shifts:
+        shift_count[d][0] += 1
+        shift_count[n1][1] += 1
+        shift_count[n2][1] += 1
+
+    max_d = max(d for d, _ in shift_count)
+    max_n = max(n for _, n in shift_count)
+
+    day = [0] * (max_d + 1)
+    night = [0] * (max_n + 1)
+
+    for d, n in shift_count:
+        day[d] += 1
+        night[n] += 1
+
+    return day, night
+
+
+def _print_daynight_quantity(
+    shifts: list[list[int]],
+    guards: dict[int, dict[str, set[int]]],
+) -> None:
+    day, night = _daynight_quantity(shifts, guards)
+    for d, q in enumerate(day):
+        if q != 0:
+            print(f"      → {d} dayshifts: {q} guards")
+
+    for n, q in enumerate(night):
+        if q != 0:
+            print(f"      → {n} nightshifts: {q} guards")
+
+
 def print_result(
     guards: dict[int, dict[str, set[int]]],
     shifts_1: list[list[int]],
@@ -25,6 +63,7 @@ def print_result(
     cov2: float,
     pen1: int,
     pen2: int,
+    only_results: bool = True,
 ) -> None:
     pref_perc = round((pref2 - pref1) / (pref1 / 100), 3)
     pref_res = f"+{pref_perc}%" if pref_perc >= 0 else f"{pref_perc}%"
@@ -34,21 +73,22 @@ def print_result(
     _, min_count_1, max_count_1 = _fairness_penalty_and_min_max(shifts_1, guards)
     _, min_count_2, max_count_2 = _fairness_penalty_and_min_max(shifts_2, guards)
 
-    # inital schedule
-    print(f"initial schedule:\n\n{shifts_1}\n")
-    print(f"preference score: {pref1}")
-    print(f"coverage score: {cov1}")
-    print(f"fairness penalty: {pen1}")
+    if not only_results:
+        # inital schedule
+        print(f"initial schedule:\n\n{shifts_1}\n")
+        print(f"preference score: {pref1}")
+        print(f"coverage score: {cov1}")
+        print(f"fairness penalty: {pen1}")
 
-    print("\n\n\n")
+        print("\n\n\n")
 
-    # optimized schedule
-    print(f"optimized schedule:\n\n{shifts_2}\n")
-    print(f"preference score: {pref2}")
-    print(f"coverage score: {cov2}")
-    print(f"fairness penalty: {pen2}")
+        # optimized schedule
+        print(f"optimized schedule:\n\n{shifts_2}\n")
+        print(f"preference score: {pref2}")
+        print(f"coverage score: {cov2}")
+        print(f"fairness penalty: {pen2}")
 
-    print("\n\n\n")
+        print("\n\n\n")
 
     # results
     print("\n---------- RESULTS ----------\n")
@@ -57,4 +97,5 @@ def print_result(
     print(
         f" • Fairness penalty: {pen1} → {pen2} (Δ = {pen_delta}), S_min = {min_count_2}, S_max = {max_count_2}"
     )
+    _print_daynight_quantity(shifts_2, guards)
     print(f"   • Time taken: {t_d:.4f} s")
