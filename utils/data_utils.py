@@ -20,3 +20,10 @@ def parse_input(fin: Path) -> dict[int, dict[str, set[int]]]:
             guards[idx] = {"prefs": set(prefs), "forbiddens": set(forbiddens)}
             idx += 1
     return guards
+
+
+def save_output(fout: Path, shifts: list[list[int]]) -> None:
+    with open(file=fout, encoding="utf-8", mode="w") as f:
+        for s in shifts:
+            line = " ".join([str(x + 1) for x in s]) + "\n"
+            f.write(line)
